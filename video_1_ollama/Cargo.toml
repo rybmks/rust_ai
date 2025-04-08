@@ -1,0 +1,15 @@
+[package]
+name = "ollama"
+version = "0.1.0"
+edition = "2024"
+
+[lints.rust]
+unused = { level = "allow", priority = -1 }
+
+unsafe_code = "forbid"
+[dependencies]
+tokio = { version = "~1.44", features = ["rt-multi-thread", "macros"] }
+futures = "~0.3"
+ollama-rs = { version = "~0.3", features = ["stream"] }
+simple-fs = { version = "~0.5", features = ["full"] }
+derive_more = "~2.0"
