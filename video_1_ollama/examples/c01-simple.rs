@@ -1,10 +1,8 @@
-use futures::StreamExt;
 use ollama::Result;
 use ollama::consts::*;
 use ollama::generate::gen_stream_print;
 use ollama_rs::Ollama;
 use ollama_rs::generation::completion::request::GenerationRequest;
-use tokio::io::AsyncWriteExt;
 
 #[tokio::main]
 async fn main() -> Result<()> {

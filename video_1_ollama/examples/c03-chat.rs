@@ -1,15 +1,10 @@
 use futures::StreamExt;
-use futures::stream;
 use ollama::Result;
 use ollama::consts::*;
-use ollama::generate::gen_stream_print;
 use ollama_rs::Ollama;
 use ollama_rs::generation::chat::ChatMessage;
 use ollama_rs::generation::chat::MessageRole;
 use ollama_rs::generation::chat::request::ChatMessageRequest;
-use ollama_rs::generation::completion::request::GenerationRequest;
-use simple_fs::ensure_file_dir;
-use simple_fs::save_json;
 use tokio::io::AsyncWriteExt;
 
 #[tokio::main]
@@ -22,7 +17,7 @@ async fn main() -> Result<()> {
         "what was my last question",
     ];
 
-    let mut system_msg = ChatMessage::new(MessageRole::System, DEFAULT_SYSTEM_MOCK.to_string());
+    let system_msg = ChatMessage::new(MessageRole::System, DEFAULT_SYSTEM_MOCK.to_string());
     let mut thread_msgs: Vec<ChatMessage> = vec![system_msg];
 
     for prompt in prompts {

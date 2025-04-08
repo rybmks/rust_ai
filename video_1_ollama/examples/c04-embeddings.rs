@@ -1,26 +1,13 @@
-use std::path::Path;
-
-use futures::StreamExt;
-use futures::stream;
 use ollama::Result;
 use ollama::consts::*;
-use ollama::generate::gen_stream_print;
 use ollama_rs::Ollama;
-use ollama_rs::generation::chat::ChatMessage;
-use ollama_rs::generation::chat::MessageRole;
-use ollama_rs::generation::chat::request;
-use ollama_rs::generation::chat::request::ChatMessageRequest;
-use ollama_rs::generation::completion::request::GenerationRequest;
-use ollama_rs::generation::embeddings;
 use ollama_rs::generation::embeddings::request::EmbeddingsInput;
 use ollama_rs::generation::embeddings::request::GenerateEmbeddingsRequest;
 use simple_fs::ensure_dir;
-use simple_fs::ensure_file_dir;
 use simple_fs::read_to_string;
 use simple_fs::save_be_f64;
 use simple_fs::save_json;
-use tokio::fs;
-use tokio::io::AsyncWriteExt;
+use std::path::Path;
 
 const MOCK_DIR: &str = "_mock_data";
 const C04_DIR: &str = ".co4-data";
