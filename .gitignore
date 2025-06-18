@@ -17,3 +17,8 @@ target/
 #.idea/
 
 .*
+
+#dt generated files except pdf
+dt.log
+dt.tex
+dt.aux
