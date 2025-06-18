@@ -1,0 +1,18 @@
+[package]
+name = "video_3_dt"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+#Only available version of polars here is 
+#"0.44.2" because of ndarray 0.16 dependency (0.16 is not supported by 
+#linfa yet. See https://github.com/rust-ml/linfa/pull/371)
+ndarray = "0.15"
+polars = { version = "0.44.2", default-features = false, features = [
+    "ndarray",
+    "polars-io",
+    "lazy",
+    "polars-ops",
+] }
+linfa = "0.7.1"
+linfa-trees = "0.7.1"
