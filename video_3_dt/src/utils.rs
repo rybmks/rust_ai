@@ -19,8 +19,7 @@ pub fn label_encode(df: &DataFrame) -> Result<DataFrame> {
                 mapping.insert(value, index as u32);
             }
 
-            let c_encoded = df
-                .column(name)?
+            let c_encoded = series
                 .str()?
                 .into_iter()
                 .map(|value| {
