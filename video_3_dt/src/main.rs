@@ -67,7 +67,7 @@ fn main() -> Result<()> {
 
     let mut safe_tikz = model.export_to_tikz().with_legend().to_string();
 
-    safe_tikz = safe_tikz.replace("_", "\\_"); // Fie legend render issue
+    safe_tikz = safe_tikz.replace("_", "\\_"); // Fix legend render issue
 
     File::create("dt.tex")?.write_all(safe_tikz.as_bytes())?;
 
