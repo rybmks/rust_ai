@@ -1,0 +1,9 @@
+[package]
+name = "video_11_llm-chain"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+llm-chain = "0.13.0"
+llm-chain-openai = "0.13.0"
+tokio = { version = "1.45.1", features = ["full"] }
