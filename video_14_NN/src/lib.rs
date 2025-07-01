@@ -40,7 +40,7 @@ impl Matrix {
         }
     }
 
-    pub fn substract(&self, other: &Matrix) -> Matrix {
+    pub fn subtract(&self, other: &Matrix) -> Matrix {
         assert_eq!(self.rows, other.rows, "Matrix row counts must match");
         assert_eq!(self.cols, other.cols, "Matrix column counts must match");
 
