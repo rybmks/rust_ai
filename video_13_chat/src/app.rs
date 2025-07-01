@@ -1,14 +1,10 @@
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
-use leptos_router::{
-    components::{Route, Router, Routes},
-    StaticSegment,
-};
 
 use crate::{
-    api::converse,
-    model::conversation::{Conversation, Message},
+    api::converse, app::components::{chat_area::ChatArea, type_area::TypeArea}, model::conversation::{Conversation, Message}
 };
+pub mod components;
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -47,6 +43,27 @@ pub fn App() -> impl IntoView {
         converse(conversation.get())
     });
 
+    Effect::new(move |_| {
+        if send.input().get().is_some() {
+            let model_message = Message {
+                text: String::from("..."),
+                is_user: false,
+            };
+
+            set_conversation.update(move |c| {
+                c.messages.push(model_message);
+            });
+        }
+    });
+
+    Effect::new(move |_|{
+        if let Some(Ok(response)) = send.value().get() {
+            set_conversation.update(move |c| {
+                c.messages.last_mut().unwrap().text = response;
+            });
+        }
+    });
+
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
@@ -54,7 +71,7 @@ pub fn App() -> impl IntoView {
 
         // sets the document title
         <Title text="Rusty llama"/>
-        // <ChatArea conversation/>
-        // <TypeArea send/>
+        <ChatArea conv=conversation/>
+        <TypeArea send/>
     }
 }

@@ -1,4 +1,3 @@
-use crate::model;
 use crate::model::conversation::Conversation;
 use leptos::prelude::ServerFnError;
 use leptos::*;
