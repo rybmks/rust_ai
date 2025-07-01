@@ -1,7 +1,6 @@
 use std::time::Instant;
 
 use kalosm::{language::*, *};
-
 type Error = Box<dyn std::error::Error>;
 type Result<T> = core::result::Result<T, Error>;
 
