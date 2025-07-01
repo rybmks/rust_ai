@@ -1,0 +1,14 @@
+[package]
+name = "burn-example"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+burn = { version = "0.17.1", features = [
+    "ndarray",
+    "burn-ndarray",
+    "train",
+    "wgpu",
+] }
+burn-ndarray = "0.17.1"
+rand = "0.9.1"
