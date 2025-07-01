@@ -192,7 +192,7 @@ impl Network {
     }
 
     pub fn back_propogate(&mut self, inputs: Matrix, targets: Matrix) {
-        let mut errors: Matrix = targets.substract(&inputs);
+        let mut errors: Matrix = targets.subtract(&inputs);
         let mut gradients = inputs.clone().map(self.activation.derivative);
 
         for i in (0..self.layers.len() - 1).rev() {
