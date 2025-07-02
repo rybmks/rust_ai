@@ -1,0 +1,9 @@
+[package]
+name = "video_17_bert"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+indicatif = { version = "0.17.12" }
+rust-bert = { version = "0.23.0" }
+console = { version = "0.16.0", features = ["std"] }
