@@ -1,0 +1,9 @@
+[package]
+name = "video_18_CG"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dot-generator = "0.2.0"
+dot-structures = "0.1.2"
+graphviz-rust = "0.9.5"
