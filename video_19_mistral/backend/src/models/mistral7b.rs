@@ -1,7 +1,6 @@
-use std::io::Write;
-
 use super::Model;
 use crate::Result;
+use crate::models::ResponseStream;
 use candle_core::DType;
 use candle_core::Device;
 use candle_examples::token_output_stream::TokenOutputStream;
@@ -9,15 +8,20 @@ use candle_transformers::generation::LogitsProcessor;
 use candle_transformers::generation::Sampling;
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use candle_transformers::models::mistral::{Config, Model as Mistral};
-use futures::Stream;
+use futures::stream;
 use hf_hub::{Repo, RepoType, api::tokio::Api};
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::atomic::AtomicUsize;
 use tokenizers::Tokenizer;
 use tokio::{fs::File, io::AsyncReadExt};
 
 const MODEL_ID: &str = "mistralai/Mistral-7B-v0.1";
 static DTYPE: DType = DType::F16;
 
-pub struct Mistral7B {
+pub struct Mistral7B(Arc<Mutex<_Mistral7B>>);
+
+struct _Mistral7B {
     model: Mistral,
     device: Device,
     tokenizer: TokenOutputStream,
@@ -25,7 +29,7 @@ pub struct Mistral7B {
 }
 
 impl Model for Mistral7B {
-    fn init(api: Api, device: Device) -> impl std::future::Future<Output = Result<Mistral7B>> {
+    fn init(api: Api, device: Device) -> impl std::future::Future<Output = Result<impl Model>> {
         let repo = api.repo(Repo::new(MODEL_ID.to_string(), RepoType::Model));
 
         async move {
@@ -35,7 +39,7 @@ impl Model for Mistral7B {
             let tokenizer_path = repo.get("tokenizer.json").await?;
             let config_path = repo.get("config.json").await?;
             let _tensors_index_path = repo.get("model.safetensors.index.json").await?;
-            
+
             let _ = repo.get("tokenizer_config.json").await?;
             let tensors1 = repo.get("model-00001-of-00002.safetensors").await?;
             let tensors2 = repo.get("model-00002-of-00002.safetensors").await?;
@@ -70,93 +74,102 @@ impl Model for Mistral7B {
                 },
             );
 
-            let model = Mistral7B {
+            let model = _Mistral7B {
                 model,
                 logits_processor,
                 tokenizer: TokenOutputStream::new(tokenizer),
                 device,
             };
 
-            Ok(model)
+            Ok(Mistral7B(Arc::new(Mutex::new(model))))
         }
     }
 
-    fn run<T: Into<String>>(&mut self, prompt: T, sample_len: usize) -> Result<()> {
+    fn run<T: Into<String>>(&mut self, prompt: T, sample_len: usize) -> Result<ResponseStream> {
         let prompt = format!(
             "<|system|>\nYou are an assistant. Answer concisely and finish your reply properly.\n<|user|>\n{}\n<|assistant|>\n",
             prompt.into()
         );
 
-        let mut tokens = self
+        let model_ref = self.0.clone();
+        let binding = model_ref.clone();
+        let model = binding
+            .lock()
+            .map_err(|e| format!("Failed to lock model mutex: {e}"))?;
+
+        let tokens = model
             .tokenizer
             .tokenizer()
             .encode(prompt, true)?
             .get_ids()
             .to_vec();
 
-        for &t in tokens.iter() {
-            if let Some(t) = self.tokenizer.next_token(t)? {
-                print!("{t}")
-            }
-        }
-        std::io::stdout().flush()?;
-        let mut generated_tokens = 0usize;
-        let eos_token = match self.tokenizer.get_token("</s>") {
+        let _eos_token = match model.tokenizer.get_token("</s>") {
             Some(token) => token,
             None => {
                 tracing::error!("cannot find the </s> token");
                 return Err(Box::from("cannot find the </s> token"));
             }
         };
-        let start_gen = std::time::Instant::now();
 
-        for index in 0..sample_len {
-            let context_size = if index > 0 {
-                1
-            } else {
-                usize::min(tokens.len(), 64)
-            };
-            let start_pos = tokens.len().saturating_sub(context_size);
-            let ctxt = &tokens[start_pos..];
-            let input = candle_core::Tensor::new(ctxt, &self.device)?.unsqueeze(0)?;
-            let logits = self.model.forward(&input, start_pos).map_err(|e| {
-                Box::from(format!("Error while running forward: {e}"))
-                    as Box<dyn std::error::Error + Send + Sync>
-            })?;
+        let tokens = Arc::new(Mutex::new(tokens));
+        let generated_count = AtomicUsize::new(0);
+        let generated_count = Arc::new(generated_count);
 
-            let logits = logits.squeeze(0)?.squeeze(0)?.to_dtype(DTYPE)?;
-            let next_token = self.logits_processor.sample(&logits)?;
-            tokens.push(next_token);
-            generated_tokens += 1;
+        let stream = stream::unfold(0, move |index| {
+            let model_ref = model_ref.clone();
+            let tokens_ref = tokens.clone();
+            let generated_count = generated_count.clone();
 
-            if next_token == eos_token {
-                break;
+            async move {
+                if generated_count.load(std::sync::atomic::Ordering::Relaxed) >= sample_len {
+                    return None;
+                }
+
+                let res: Result<String> = (|| {
+                    let mut model = model_ref.lock().map_err(|e| {
+                        Box::<dyn std::error::Error + Send + Sync>::from(format!(
+                            "Mutex error: {e:?}"
+                        ))
+                    })?;
+
+                    let mut tokens = tokens_ref.lock().map_err(|e| {
+                        Box::<dyn std::error::Error + Send + Sync>::from(format!(
+                            "Mutex error: {e:?}"
+                        ))
+                    })?;
+
+                    let context_size = if index > 0 {
+                        1
+                    } else {
+                        usize::min(tokens.len(), 64)
+                    };
+                    let start_pos = tokens.len().saturating_sub(context_size);
+                    let ctxt = &tokens[start_pos..];
+                    let input = candle_core::Tensor::new(ctxt, &model.device)?.unsqueeze(0)?;
+
+                    let logits = model.model.forward(&input, start_pos)?;
+                    let logits = logits.squeeze(0)?.squeeze(0)?.to_dtype(DTYPE)?;
+
+                    let next_token = model.logits_processor.sample(&logits)?;
+                    tokens.push(next_token);
+                    generated_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+                    if let Some(result) = model.tokenizer.next_token(next_token)? {
+                        Ok(result)
+                    } else {
+                        Ok("".to_string())
+                    }
+                })();
+
+                match res {
+                    Ok(token) if token == "__STOP__" => None,
+                    Ok(token) => Some((Ok(token), index + 1)),
+                    Err(err) => Some((Err(err), index + 1)),
+                }
             }
+        });
 
-            if let Some(decoded) = self.tokenizer.decode_rest()?
-                && (decoded.contains("<|end|>")
-                    || decoded.contains("<|user|>")
-                    || next_token == eos_token)
-            {
-                break;
-            }
-
-            if let Some(t) = self.tokenizer.next_token(next_token)? {
-                print!("{t}");
-                std::io::stdout().flush()?;
-            }
-        }
-        let dt = start_gen.elapsed();
-        if let Some(rest) = self.tokenizer.decode_rest()? {
-            print!("{rest}");
-        }
-        std::io::stdout().flush()?;
-        println!(
-            "\n{generated_tokens} tokens generated ({:.2} token/s)",
-            generated_tokens as f64 / dt.as_secs_f64(),
-        );
-        Ok(())
+        Ok(Box::pin(stream))
     }
 }
-
-impl Mistral7B {}
