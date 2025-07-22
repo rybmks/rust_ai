@@ -61,7 +61,7 @@ impl Model for Mistral7B {
             let tokenizer = Tokenizer::from_file(tokenizer_path)?;
 
             // TODO: configure model.
-            let seed = 42; // random numbr generator seed (any number for reproducibility)
+            let seed = 42; // random number generator seed (any number for reproducibility)
             let logits_processor = LogitsProcessor::from_sampling(
                 seed,
                 Sampling::TopK {
