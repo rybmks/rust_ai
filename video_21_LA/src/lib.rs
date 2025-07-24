@@ -95,7 +95,7 @@ impl Matrix {
 
     pub fn add(&self, b: Matrix) -> Matrix {
         if self.rows != b.rows || self.cols != b.cols {
-            panic!("Matrices must be of the same time");
+            panic!("Matrices must be of the same size");
         }
 
         let mut sum = Matrix::new(self.rows, self.cols);
