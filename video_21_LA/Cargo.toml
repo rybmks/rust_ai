@@ -1,0 +1,6 @@
+[package]
+name = "video_21_LA"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
