@@ -20,7 +20,7 @@ fn main() -> Result<()> {
         let loss = (&y_pred - &y_true).pow_tensor_scalar(2).sum(Kind::Float);
         opt.backward_step(&loss);
 
-        if epoch % 100 == 0 {
+        if epoch % 10 == 0 {
             println!("Epoch: {epoch}, loss: {loss:?}",);
         }
     }
