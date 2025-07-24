@@ -153,7 +153,7 @@ impl Matrix {
                     self.data[lead] = self.data[lead].iter().map(|entry| entry / div).collect();
                 } else {
                     for c in 0..self.cols {
-                        self.data[r][c] = self.data[lead][c] * mult;
+                        self.data[r][c] -= self.data[lead][c] * mult;
                     }
                 }
                 lead += 1;
