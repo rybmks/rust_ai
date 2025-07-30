@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "crates/core",
+]
+
+[workspace.package]
+name = "wasm_ai"
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+serde = "1.0"
+tokio = { version = "1", features = ["full"] }
