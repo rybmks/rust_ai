@@ -10,7 +10,10 @@ pub struct GgmlMetadata {
     // this field not defined for the beckend plugin
     #[serde(skip_serializing)]
     pub model_name: String,
-    // this field not defined for the beckend plugin
+    // this field not defined for the backend plugin
+    #[serde(skip_serializing)]
+    pub model_name: String,
+    // this field not defined for the backend plugin
     #[serde(skip_serializing)]
     pub model_alias: String,
     // * Plugin parameters (used by this plugin):
