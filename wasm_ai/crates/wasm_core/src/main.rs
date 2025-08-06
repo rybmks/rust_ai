@@ -38,7 +38,7 @@ async fn main() -> Result<ExitCode, Error> {
     conversation_history.push(format!("SYSTEM:{SYSTEM_PROMPT}"));
 
     let res: Result<(), Error> = loop {
-        print!("Write your promt(or /q for exit): ");
+        print!("Write your prompt(or /q for exit): ");
         stdout().flush()?;
 
         let mut prompt = String::new();
