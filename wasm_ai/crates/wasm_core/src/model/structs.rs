@@ -45,7 +45,7 @@ pub struct GgmlMetadata {
     #[serde(rename = "main-gpu")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub main_gpu: Option<u64>,
-    /// How split tensors should be distributed accross GPUs. If None the model is not split; otherwise, a comma-separated list of non-negative values, e.g., "3,2" presents 60% of the data to GPU 0 and 40% to GPU 1. Defaults to None.
+    /// How split tensors should be distributed across GPUs. If None the model is not split; otherwise, a comma-separated list of non-negative values, e.g., "3,2" presents 60% of the data to GPU 0 and 40% to GPU 1. Defaults to None.
     #[serde(rename = "tensor-split")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tensor_split: Option<String>,
