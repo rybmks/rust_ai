@@ -1,0 +1,61 @@
+<!-- Unused: Wasm replaced by Wasi -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WASM AI Frontend</title>
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to WASM AI Frontend</h1>
+    </header>
+    <main>
+      <p>Your Rust + WASM AI app starts here.</p>
+      <p>Send your name</p>
+      <input type="text" id="name-input" />
+      <button id="greet-btn">Butt</button>
+    </main>
+    <script type="module">
+      import { WASI } from "https://esm.sh/@runno/wasi";
+
+      async function runWasiModule() {
+        // Fetch the compiled WASI-enabled WebAssembly module
+        const response = await fetch("../pkg/core.wasm");
+        const bytes = await response.arrayBuffer();
+
+        // Create a WASI instance
+        const wasi = new WASI();
+
+        // Instantiate the WebAssembly module with the WASI imports
+        const { instance } = await WebAssembly.instantiate(bytes, {
+          wasi_snapshot_preview1: wasi.wasiImport,
+          // Add other necessary imports if your module requires them
+        });
+
+        // Start the WASI module (if it's a command-line style module)
+        wasi.start(instance);
+        wasi.greet("da");
+        // Or, initialize as a reactor and call specific exports (if it's a reactor module)
+        // wasi.initialize(instance);
+        // instance.exports.your_exported_function();
+      }
+
+      runWasiModule();
+
+      // import init, { greet } from "../pkg/core.js";
+
+      // async function run() {
+      //   await init();
+
+      //   document.getElementById("greet-btn").addEventListener("click", () => {
+      //     const nameInput = document.getElementById("name-input");
+      //     const name = nameInput.value;
+      //     greet(name);
+      //   });
+      // }
+
+      // run();
+    </script>
+  </body>
+</html>
