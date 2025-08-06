@@ -1,0 +1,9 @@
+[package]
+name = "runner"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { version = "1.47.0", features = ["full"] }
+wasmtime = "~35.0.0"
+wasmtime-wasi = "~35.0.0"

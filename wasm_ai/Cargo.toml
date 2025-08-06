@@ -1,7 +1,6 @@
 [workspace]
-members = [
-    "crates/core",
-]
+resolver = "1"
+members = ["crates/wasm_core", "crates/runner", "crates/prepare"]
 
 [workspace.package]
 name = "wasm_ai"
@@ -10,4 +9,5 @@ edition = "2024"
 
 [workspace.dependencies]
 serde = "1.0"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["macros", "rt", "time"] }
+wasmtime = { version = "35.0.0", features = ["async"] }

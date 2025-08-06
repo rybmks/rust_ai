@@ -1,3 +1,5 @@
+<!-- Unused: Wasm replaced by Wasi -->
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -15,19 +17,45 @@
       <button id="greet-btn">Butt</button>
     </main>
     <script type="module">
-      import init, { greet } from "../pkg/core.js";
+      import { WASI } from "https://esm.sh/@runno/wasi";
 
-      async function run() {
-        await init();
+      async function runWasiModule() {
+        // Fetch the compiled WASI-enabled WebAssembly module
+        const response = await fetch("../pkg/core.wasm");
+        const bytes = await response.arrayBuffer();
 
-        document.getElementById("greet-btn").addEventListener("click", () => {
-          const nameInput = document.getElementById("name-input");
-          const name = nameInput.value;
-          greet(name);
+        // Create a WASI instance
+        const wasi = new WASI();
+
+        // Instantiate the WebAssembly module with the WASI imports
+        const { instance } = await WebAssembly.instantiate(bytes, {
+          wasi_snapshot_preview1: wasi.wasiImport,
+          // Add other necessary imports if your module requires them
         });
+
+        // Start the WASI module (if it's a command-line style module)
+        wasi.start(instance);
+        wasi.greet("da");
+        // Or, initialize as a reactor and call specific exports (if it's a reactor module)
+        // wasi.initialize(instance);
+        // instance.exports.your_exported_function();
       }
 
-      run();
+      runWasiModule();
+
+      // import init, { greet } from "../pkg/core.js";
+
+      // async function run() {
+      //   await init();
+
+      //   document.getElementById("greet-btn").addEventListener("click", () => {
+      //     const nameInput = document.getElementById("name-input");
+      //     const name = nameInput.value;
+      //     greet(name);
+      //   });
+      // }
+
+      // run();
     </script>
   </body>
 </html>

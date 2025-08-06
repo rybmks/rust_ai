@@ -1,0 +1,12 @@
+.
+├── core
+│   ├── Cargo.toml
+│   └── src
+│       └── lib.rs
+├── out.txt
+└── runner
+    ├── Cargo.toml
+    └── src
+        └── main.rs
+
+5 directories, 5 files
